@@ -19,14 +19,14 @@ if (! exists("planck")) ssource("planck.R", chdir = T)
 
 model_params = data_frame(
   key = c("co2_ppm",
-          "ch4_ppb",
+          "ch4_ppm",
           "trop_o3_ppb",
           "strat_o3_scale",
           "h2o_scale",
           "freon_scale",
           "delta_t",
-          "h2o_spec",
-          "model_atmosphere",
+          "h2o_fixed",
+          "atmosphere",
           "clouds",
           "altitude_km",
           "looking"
@@ -38,7 +38,7 @@ model_params = data_frame(
           "model", "icld",
           "altitude", "i_obs"),
   descr = c("CO2 concentration (ppm)",
-            "Methane concentration (ppb)",
+            "Methane concentration (ppm)",
             "Tropospheric ozone concentration (ppb)",
             "Stratospheric ozone scale",
             "Water vapor scale",
@@ -52,25 +52,26 @@ model_params = data_frame(
   spec = c( NA, NA, NA,
             NA, NA, NA,
             NA,
-            "h2o_spec",
+            "h2o_fixed",
             "atmos_spec", "cloud_spec",
             NA, "sensor_orientation")
 )
 
 atmos_spec <- data_frame(
-  key = c("standard", "tropical",
+  key = c("tropical",
           "midlatitude summer", "midlatitude winter",
-          "subarctic summer", "subarctic winter"
+          "subarctic summer", "subarctic winter",
+          "standard"
   ),
-  value = c(6, 1, 2, 3, 4, 5),
-  descr = c("1976 U.S. Standard Atmosphere",
-            "Tropical",
+  value = c(1, 2, 3, 4, 5, 6),
+  descr = c("Tropical",
             "Midlatitude Summer", "Midlatitude Winter",
-            "Subarctic Summer", "Subarctic Winter"
+            "Subarctic Summer", "Subarctic Winter",
+            "1976 U.S. Standard Atmosphere"
   )
 )
 
-h2o_spec <- data_frame(
+h2o_fixed <- data_frame(
   key = c("vapor pressure", "relative humidity"),
   value = c(0, 1),
   descr = c("constant vapor pressure", "constant relative humidity")
@@ -116,32 +117,32 @@ sensor_orientation <- data_frame(
 
 run_modtran <- function(filename,
                         co2_ppm = 400,
-                        ch4_ppb = 1.7,
+                        ch4_ppm = 1.7,
                         trop_o3_ppb = 28,
                         strat_o3_scale = 1.0,
                         h2o_scale = 1.0,
                         freon_scale = 1.0,
                         delta_t = 0.0,
-                        h2o_spec = get("h2o_spec", 1)$key,
-                        model_atmosphere = get("atmos_spec", 1)$key,
+                        h2o_fixed = get("h2o_fixed", 1)$key,
+                        atmosphere = get("atmos_spec", 1)$key,
                         clouds = get("cloud_spec", 1)$key,
                         altitude_km = 70,
                         looking = get("sensor_orientation", 1)$key
 )
 {
-  values <- list(co2_ppm, ch4_ppb, trop_o3_ppb,
+  values <- list(co2_ppm, ch4_ppm, trop_o3_ppb,
                  strat_o3_scale, h2o_scale, freon_scale,
-                 delta_t, h2o_spec,
-                 model_atmosphere, clouds,
+                 delta_t, h2o_fixed,
+                 atmosphere, clouds,
                  altitude_km, looking) %>%
-    set_names(c("co2_ppm", "ch4_ppb", "trop_o3_ppb",
+    set_names(c("co2_ppm", "ch4_ppm", "trop_o3_ppb",
                 "strat_o3_scale", "h2o_scale", "freon_scale",
-                "delta_t", "h2o_spec",
-                "model_atmosphere", "clouds",
+                "delta_t", "h2o_fixed",
+                "atmosphere", "clouds",
                 "altitude_km", "looking")) %>%
     map(~as.character(.x[1])) %>%
     simplify()
-  for(k in c('h2o_spec', 'model_atmosphere', 'clouds', 'looking')) {
+  for(k in c('h2o_fixed', 'atmosphere', 'clouds', 'looking')) {
     # message("Looking up ", k)
     lookup = model_params %>% filter(key == k) %>% select(spec) %>% simplify()
     # message("Lookup = ", lookup)
@@ -155,7 +156,7 @@ run_modtran <- function(filename,
   args = str_c(params$cgi, params$value, sep = "=", collapse = "&")
   args = str_c(args, "i_save=0", sep="&")
   url = paste0(url_base, args)
-  message(url)
+  # message(url)
   output = read_html(url)
   body <- as_list(output) %>% unlist() %>% simplify()
   # lines <- body %>% str_split("\n") %>% unlist() %>% simplify()
@@ -244,9 +245,10 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                          last_i_out = NA, delta_t = NA,
                          tmin=220, tmax = 300,
                          nc = 5, max_color = 0.8,
+                         delta_t_digits = 2,
                          annotate_x_1 = 100, annotate_x_2 = 1200,
                          annotate_y_1 = 0.49, annotate_y_2 = 0.44,
-                         annotate_size = 8, text_size = 10,
+                         annotate_size = 5, text_size = 10,
                          legend_text_size = 10, legend_size = 0.2,
                          line_scale = 1, direction = "out") {
   x  <- read_modtran(filename)
@@ -255,6 +257,10 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
   co2 <- x$co2
   i_out <- x$i_out
   k_limits <- c(100, 1500)
+
+  # if (! is.na(delta_t) && (delta_t %in% c(TRUE, 'auto'))) {
+  #   delta_t = x$delta_t
+  # }
 
   if (is.null(descr)) {
     descr <- bquote(.(co2) * " ppm " * CO[2] * ", " * .(alt) * " km altitude")
@@ -323,7 +329,8 @@ plot_modtran <- function(filename, descr = NULL, i_out_ref = NA,
                           size=annotate_size, color="dark blue")
     } else if (! is.na(delta_t)) {
       caption <- paste("Delta * T[ground] == ",formatC(delta_t,
-                                                       digits=1, format="f"),
+                                                       digits=delta_t_digits,
+                                                       format="f"),
                        " * K")
       p1 <- p1 + annotate("text", x=annotate_x_2, y=annotate_y_2,
                           label=caption, parse="TRUE", hjust=1, vjust=1,
