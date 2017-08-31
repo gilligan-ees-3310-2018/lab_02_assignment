@@ -688,7 +688,7 @@ fall below the shaded uncertainty range.
 
 How many of the red points fall below the trend line?
 
-**Answer:** _put your anser here._
+**Answer:** _put your answer here._
 
 How many of the red points fall above the trend line?
 
