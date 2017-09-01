@@ -1,9 +1,11 @@
 ---
 title: 'EES 3310/5310 Lab #2'
-subtitle: "Exercises in Data Manipulation"
 author: "put your name here"
-date: "Lab: Mon. Sept. 4. Due: Fri. Sept. 8."
-output: html_document
+date: 'Lab: Mon. Sept. 4. Due: Fri. Sept. 8.'
+output:
+  pdf_document: default
+  html_document: default
+subtitle: Exercises in Data Manipulation
 ---
 
 ```{r setup, include=FALSE}
