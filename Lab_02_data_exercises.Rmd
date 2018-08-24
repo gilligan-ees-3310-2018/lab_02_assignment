@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # This section loads necessary R libraries and sources scripts that define 
 # useful functions format_md.
 # 
-data_dir = "data"
+data_dir = "_data"
 script_dir = "scripts"
 
 library(pacman)
@@ -25,15 +25,15 @@ p_load(zoo, xml2, tidyverse, stringr)
 
 theme_set(theme_bw(base_size = 15))
 
-source('scripts/utils.R', chdir = T)
-source('scripts/modtran.R', chdir = T)
+source('_scripts/utils.R', chdir = T)
+source('_scripts/modtran.R', chdir = T)
 
 mlo_url = "http://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv"
 
 giss_url = "https://data.giss.nasa.gov/gistemp/tabledata_v3/GLB.Ts+dSST.csv"
 
 # Create a data directory if one does not exist.
-if (!dir.exists('data')) dir.create('data')
+if (!dir.exists('_data')) dir.create('_data')
 ```
 # Instructions
 
@@ -55,7 +55,7 @@ it to the local computer using the R function `download.file`
 
 ```{r download_mlo_data, include=TRUE, message=FALSE}
 mlo_url = "http://scrippsco2.ucsd.edu/assets/data/atmospheric/stations/in_situ_co2/monthly/monthly_in_situ_co2_mlo.csv"
-download.file(mlo_url, 'data/mlo_data.csv')
+download.file(mlo_url, '_data/mlo_data.csv')
 ```
 
 Try opening the data file in Excel or a text editor.
@@ -93,14 +93,15 @@ fractional parts), `n` for an unspecified number,
 
 
 ```{r import_mlo_data, include=TRUE, message=FALSE}
-mlo_data = read_csv('data/mlo_data.csv', 
+mlo_data = read_csv('_data/mlo_data.csv', 
                     skip = 57,  # skip the first 57 rows
                     col_names = c('year', 'month', 'date.excel', 'date',
                                    'co2.raw', 'co2.raw.seas', 
                                    'co2.fit', 'co2.fit.seas',
                                    'co2.filled', 'co2.filled.seas'),
-                     col_types = 'iiiddddddd', # the first three columns are integers
-                                               # and the next 7 are real numbers
+                     col_types = 'iiiddddddd', # the first three columns 
+                                               # are integers and the 
+                                               # next 7 are real numbers
                      na = '-99.99' # interpret -99.99 as a missing value
                     )
 ```
@@ -154,19 +155,24 @@ Now, let's plot this data:
 
 ```{r plot_mlo, include = TRUE}
 ggplot(mlo_simple, 
-       aes(x = date, y = co2)) + # This line specifies the data to plot and
-                                 # the aesthetics that define which variables to 
-                                 # use for the x and y axes
+       aes(x = date, y = co2)) + # This line specifies the data to plot 
+                                 # and the aesthetics that define which 
+                                 # variables to  use for the x and y 
+                                 # axes.
   geom_line() +   # This line says to plot lines between the points
   labs(x = "Year", y = "CO2 concentration (ppm)",
-       title = "Measured CO2 from Mauna Loa Observatory") # This line gives the 
-                                                          # names of the axes
-  # Earlier in this .Rmd file, I called set_theme(theme_bw(base_size = 15)) to 
-  # set the default plot style. If you call ggplot() without this,
+       title = "Measured CO2 from Mauna Loa Observatory")
+  # ^^^ The previous line gives the names of the axes and the title
+  # for the plot.
+
+
+  # Earlier in this .Rmd file, I called set_theme(theme_bw(base_size = 15)) 
+  # to set the default plot style. If you call ggplot() without this,
   # you will get a different style, but you can either call theme_set
-  # or you can add a theme specification (such as "+ theme_bw(base_size = 15)")
-  # end of the sequence of plotting commands in order to apply a specific style
-  # to an individual plot.
+  # or you can add a theme specification (such as 
+  # "+ theme_bw(base_size = 15)")
+  # to the end of the sequence of plotting commands in order to 
+  # apply a specific style to an individual plot.
 ```
 
 Notice the seasonal variation in CO~2~. Every year, there is a large cycle of
@@ -283,7 +289,7 @@ present.
 The URL for the data file is 
 <`r giss_url`>
 
-Download this file and save it in the directory `data/global_temp_land_sea.csv`.
+Download this file and save it in the directory `_data/global_temp_land_sea.csv`.
 
 ```{r download_giss_temp, include=TRUE}
 # Put your R code here
@@ -670,7 +676,9 @@ Now let's use ggplot to plot `giss_combined`:
     * Set the `size` of the points to 2
 * Use the `scale_color_manual` function to set the color of
   "Before" to "dark blue" and "After" to "dark red"
-* Use `geom_smooth(data = giss_before, method="lm", color = "blue", fill = "blue", alpha = 0.2, fullrange = TRUE)` to show a linear trend that is fit just to the `giss_before` data.
+* Use `geom_smooth(data = giss_before, method="lm", 
+  color = "blue", fill = "blue", alpha = 0.2, fullrange = TRUE)` 
+  to show a linear trend that is fit just to the `giss_before` data.
 
 ```{r plot_combined, include = TRUE}
 # Put your R code here.
