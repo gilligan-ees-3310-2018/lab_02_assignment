@@ -1,7 +1,9 @@
 ---
 title: 'EES 3310/5310 Lab #2'
 author: "put your name here"
-date: 'Lab: Mon. Sept. 4. Due: Fri. Sept. 8.'
+date: 'Lab: Mon. Sept. 3. Due: Mon. Sept. 10.'
+fontfamily: "newtxtext,newtxmath"
+fontsize: "12pt"
 output:
   pdf_document: default
   html_document: default
@@ -396,7 +398,7 @@ and one column to indicate the approval rating.
 We do this with the `gather` function from the `tidyverse` package.
 
 ```{ r gather_example}
-dfg <- df %>% gather(key = quarter, # create a column called "quarter" to store
+dfg = df %>% gather(key = quarter, # create a column called "quarter" to store
                                     # the names of the columns that are gathered
                      value = approval, # create a column called "approval" to
                                        # store the values from those columns
@@ -654,7 +656,7 @@ the value of this column to "Before" for `giss_before` and "After" for
 Now, combine the two tibbles into one tibble:
 
 ```{r combine_giss, include=TRUE}
-giss_combined <- bind_rows(giss_before, giss_after)
+giss_combined = bind_rows(giss_before, giss_after)
 ```
 
 Now let's use ggplot to plot `giss_combined`:
