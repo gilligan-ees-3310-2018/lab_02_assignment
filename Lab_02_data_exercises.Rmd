@@ -5,8 +5,8 @@ date: 'Lab: Mon. Sept. 3. Due: Mon. Sept. 10.'
 fontfamily: "newtxtext,newtxmath"
 fontsize: "12pt"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 subtitle: Exercises in Data Manipulation
 ---
 
@@ -153,7 +153,7 @@ function.
 
 Now, let's plot this data:
 
-```{r plot_mlo, include = TRUE}
+```{r plot_mlo, include = TRUE, warning = FALSE, fig.show = "hold"}
 ggplot(mlo_simple, 
        aes(x = date, y = co2)) + # This line specifies the data to plot 
                                  # and the aesthetics that define which 
@@ -183,16 +183,36 @@ how we might estimate this ourselves.
 
 The seasonal cycle is 12 months long and it repeats every year. This means that
 if we average the values in our table over a whole year, this cycle should average
-out. We can do this by creating a new column `trend` where every row represents
+out. We can do this by creating a new column `annual` where every row represents
 the average over a year centered at that row (technically, all the months from
-5 months before through six months after that date):
+5 months before through six months after that date).
 
-```{r plot_mlo_trend, include = TRUE, warning=FALSE}
-mlo_simple %>% mutate(trend = rollapply(data = co2, width = 12, FUN = mean,
+To do this, we use the function `rollapply` from the `zoo` package, as shown 
+below. The `rollapply` function allows you to take a series
+of data (such as monthly CO~2~ measurements) and at each point, apply a function
+to the data within a "window" that includes a certain number of points 
+before and after the point in question. 
+
+Here, we apply the `mean` function (`FUN = mean`) to take the average, and we 
+define the "window" to be the 12 points centered on the point in question. 
+This means that for each month in our data series, `rollapply` takes the average 
+of the 12 measurements centered on that month (technically, the month, the five 
+months before, and the six months after). You could also specify 
+`align = "left"` to take the 12 months starting with the given month, 
+or `align = "right"` to take the 12 months ending with the given month.
+
+We also need to tell `rollapply` what to do with the months at the beginning 
+of the series that don't have five months of data before them 
+and points at the end of the series that don't have six months after them.
+`fill = NA` means to set those points to `NA`, which is a special value R uses 
+to indicate missing values (`NA` means "not available").
+
+```{r plot_mlo_annual, include = TRUE, warning = FALSE}
+mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
                                       fill = NA, align = "center")) %>%
   ggplot(aes(x = date)) + 
   geom_line(aes(y = co2), color = "dark blue") +
-  geom_line(aes(y = trend), color = "black", size = 2) +
+  geom_line(aes(y = annual), color = "black", size = 2) +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
        title = "Measured and Seasonally Adjusted CO2")
 ```
@@ -200,12 +220,12 @@ mlo_simple %>% mutate(trend = rollapply(data = co2, width = 12, FUN = mean,
 But wait: we might want a legend to tell the reader what each colored line 
 represents. We can create new aesthetics for the graph mapping to do this:
 
-```{r plot_mlo_trend_2, include = TRUE, warning=FALSE}
-mlo_simple %>% mutate(trend = rollapply(data = co2, width = 12, FUN = mean,
+```{r plot_mlo_annual_2, include = TRUE, warning=FALSE}
+mlo_simple %>% mutate(annual = rollapply(data = co2, width = 12, FUN = mean,
                                       fill = NA, align = "center")) %>%
   ggplot(aes(x = date)) + 
   geom_line(aes(y = co2, color = "Raw")) +
-  geom_line(aes(y = trend, color = "12-month average"), size = 2) +
+  geom_line(aes(y = annual, color = "12-month average"), size = 2) +
   scale_color_manual(values = c("Raw" = "dark blue", "12-month average" = "black"),
                      name = "Smoothing") +
   labs(x = "Year", y = "CO2 concentration (ppm)", 
@@ -240,8 +260,7 @@ with an uncertainty of plus or minus
 We can also plot a linear trend together with the data:
 
 ```{r plot_mlo_with_fitted_trend, include = TRUE, warning=FALSE}
-mlo_simple %>% mutate(trend = rollapply(data = co2, width = 12, FUN = mean,
-                                      fill = NA, align = "center")) %>%
+mlo_simple %>% 
   ggplot(aes(x = date, y = co2)) + 
   geom_line() +
   geom_smooth(method = 'lm') +
@@ -480,7 +499,7 @@ Below, use code similar to what I put above to add a new `date` column to
 
 Now plot the monthly temperature anomalies versus date:
 
-```{r plot_giss, include=TRUE}
+```{r plot_giss, include=TRUE, warning = FALSE}
 # put your R code here
 # ggplot( ) + # specify the data and the mappings of variables to plot aesthetics
 # geom_xxx() + # put the geometries (lines, points, etc) that you want to plot
@@ -501,7 +520,7 @@ alpha is an optional specification for transparency where 0 means invisible
 a medium dark green line for the one-year rolling average,
 and a thick dark blue line for the ten-year rolling average.
 
-```{r plot_giss_with_smoothing, include=TRUE}
+```{r plot_giss_with_smoothing, include=TRUE, warning = FALSE}
 # put your R code here
 # giss_g %>% 
 #   mutate( ... ) %>% # put the code here to add a columns called 
@@ -616,7 +635,7 @@ after the 1998 El Ni&ntilde;o:
 Now plot the data and color the points for 1998 and afterward dark red to
 help us compare before and after 1998.
 
-```{r plot_recent_giss, include=TRUE}
+```{r plot_recent_giss, include=TRUE, warning = FALSE}
 ggplot(giss_annual, aes(x = date, y)) +
   geom_line(size = 1) +
   geom_point(aes(color = year >= 1998), size = 1) +
@@ -661,7 +680,7 @@ the value of this column to "Before" for `giss_before` and "After" for
 
 Now, combine the two tibbles into one tibble:
 
-```{r combine_giss, include=TRUE}
+```{r combine_giss, include=TRUE, warning = FALSE}
 giss_combined = bind_rows(giss_before, giss_after)
 ```
 
