@@ -343,7 +343,7 @@ the resulting tibble to a variable `giss_temp`
 # Put your R code here to call read_csv and read "global_temp_land_sea.csv"
 
 # show the first 5 lines of giss_temp
-head(giss_temp, 5)
+# head(giss_temp, 5)
 ```
 
 Something is funny here: Each row corresponds to a year, but there are columns
@@ -608,12 +608,18 @@ won't get a full year average from it.
 If we go back to the original `giss_g` data tibble, run the following code:
 
 ```{r summarize_giss, include=TRUE}
-giss_annual = giss_g %>% 
-  filter(year >= 1979 & year < 2017) %>%
-  group_by(year) %>% 
-  summarize(anomaly = mean(anomaly)) %>%
-  ungroup() %>%
-  mutate(date = year + 0.5)
+# When you are ready to run the code below, you can un-comment it in RStudio
+# by highlighting the lines you want to uncomment and pressing 
+# Ctrl + Shift + C on Windows or Cmd + Shift + C on Mac.
+# (You can also comment out code using the same key combination: it works
+#  as a toggle between commented and un-commented).
+#  
+# giss_annual = giss_g %>% 
+#   filter(year >= 1979 & year < 2017) %>%
+#   group_by(year) %>% 
+#   summarize(anomaly = mean(anomaly)) %>%
+#   ungroup() %>%
+#   mutate(date = year + 0.5)
 ```
 
 This code groups the giss data by the year, so that one group will have
@@ -636,14 +642,14 @@ Now plot the data and color the points for 1998 and afterward dark red to
 help us compare before and after 1998.
 
 ```{r plot_recent_giss, include=TRUE, warning = FALSE}
-ggplot(giss_annual, aes(x = date, y)) +
-  geom_line(size = 1) +
-  geom_point(aes(color = year >= 1998), size = 1) +
-  scale_color_manual(values = c(TRUE = "dark red", FALSE = "dark blue"),
-                     guide = "none") + # color "before" points dark blue, 
-                                       # "after" points dark red
-                                       # don't use a legend
-  labs(x = "Year", y = "Temperature Anomaly")
+# ggplot(giss_annual, aes(x = date, y)) +
+#   geom_line(size = 1) +
+#   geom_point(aes(color = year >= 1998), size = 1) +
+#   scale_color_manual(values = c(TRUE = "dark red", FALSE = "dark blue"),
+#                      guide = "none") + # color "before" points dark blue, 
+#                                        # "after" points dark red
+#                                        # don't use a legend
+#   labs(x = "Year", y = "Temperature Anomaly")
 ```
 
 Does it look as though the red points are not rising as fast as the blue points?
@@ -681,7 +687,7 @@ the value of this column to "Before" for `giss_before` and "After" for
 Now, combine the two tibbles into one tibble:
 
 ```{r combine_giss, include=TRUE, warning = FALSE}
-giss_combined = bind_rows(giss_before, giss_after)
+# giss_combined = bind_rows(giss_before, giss_after)
 ```
 
 Now let's use ggplot to plot `giss_combined`:
